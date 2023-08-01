@@ -77,19 +77,19 @@ runs:
       if: ${{ inputs.privateKeyPassphrase != '' }}
       shell: bash
       run: |
-        echo "${{ inputs.privateKeyPassphrase }}" | gpg --import
+        echo -e "${{ inputs.privateKeyPassphrase }}" | gpg --import
 
     - name: "Import private key without passphrase"
       if: ${{ inputs.privateKeyPassphrase == '' }}
       shell: bash
       run: |
-        echo "${{ inputs.privateKeyPassphrase }}" | gpg --import --batch --yes
+        echo -e "${{ inputs.privateKeyPassphrase }}" | gpg --import --batch --yes
 
     - name: "Import public key"
       if: ${{ inputs.gpgPublicKey != '' }}
       shell: bash
       run: |
-        echo "${{ inputs.gpgPublicKey }}" | gpg --import --batch --yes
+        echo -e "${{ inputs.gpgPublicKey }}" | gpg --import --batch --yes
 
     - name: "Listing gpg keys"
       shell: bash
