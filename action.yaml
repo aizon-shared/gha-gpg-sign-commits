@@ -77,7 +77,7 @@ runs:
       if: ${{ inputs.privateKeyPassphrase != '' }}
       shell: bash
       run: |
-        echo "${{ inputs.privateKeyPassphrase }}" | gpg --import --batch --yes --passphrase "${{ inputs.privateKeyPassphrase }}" --pinentry-mode loopback
+        echo -e "${{ inputs.privateKeyPassphrase }}" | gpg --import
 
     - name: "Import private key without passphrase"
       if: ${{ inputs.privateKeyPassphrase == '' }}
