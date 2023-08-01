@@ -47,11 +47,20 @@ outputs:
   gpg-name:
     description: "GPG key name"
     value: ${{ steps.export-gpg-details.outputs.gpg-name }}
-  git-signingkey:
-    description: "Git singing key"
-    value: ${{ steps.setup-git.outputs.git-signingkey }}
+  git-user-email:
+    description: "Git user email"
+    value: ${{ steps.setup-git.outputs.git-user-email }}
+  git-user-name:
+    description: "Git user name"
+    value: ${{ steps.setup-git.outputs.git-user-name }}
+  git-user-signingkey:
+    description: "Git user signing key"
+    value: ${{ steps.setup-git.outputs.git-user-signingkey }}
+  git-commit-gpgsign:
+    description: "Git commit gpgsign"
+    value: ${{ steps.setup-git.outputs.git-commit-gpgsign }}
   git-gpg-program:
-    description: "Git GPG program"
+    description: "Git gpg program"
     value: ${{ steps.setup-git.outputs.git-gpg-program }}
 
 runs:
@@ -111,7 +120,11 @@ runs:
         git config --global user.signingkey "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}"
         git config --global commit.gpgsign true
         git config --global gpg.program gpg2
-        echo "git-signingkey=$(git config --get commit.gpgsign)" >> "$GITHUB_OUTPUT"
+
+        echo "git-user-email=$(git config --get user.email)" >> "$GITHUB_OUTPUT"
+        echo "git-user-name=$(git config --get user.name)" >> "$GITHUB_OUTPUT"
+        echo "git-user-signingkey=$(git config --get user.signingkey)" >> "$GITHUB_OUTPUT"
+        echo "git-commit-gpgsign=$(git config --get commit.gpgsign)" >> "$GITHUB_OUTPUT"
         echo "git-gpg-program=$(git config --get gpg.program)" >> "$GITHUB_OUTPUT"
 
     - name: "Debug"
