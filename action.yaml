@@ -1,0 +1,123 @@
+name: "GPG Setup"
+author: "Aizon.ai"
+description: "Install and configure GPG tooling in Github Actions runners"
+
+inputs:
+  gpgPrivateKey:
+    description: "The private key to import"
+    required: true
+  gpgPublicKey:
+    description: "The public key to import"
+    required: false
+  privateKeyPassphrase:
+    description: "The passphrase of the private key"
+    required: false
+  gitSignCommits:
+    description: |-
+      Enable git configurations to sign commits with the imported key.
+
+      This will override any existing git configurations for:
+      - user.email
+      - user.name
+      - user.signingkey
+      - commit.gpgsign
+      - gpg.program
+
+      Name and email will be set to the values of the imported key.
+    default: true
+    required: false
+  debug:
+    description: "Enable debug mode"
+    default: false
+    required: false
+
+outputs:
+  gpg-version:
+    description: "GPG used version"
+    value: ${{ steps.install.outputs.gpg-version }}
+  pinentry-tty-version:
+    description: "pinentry-tty used version"
+    value: ${{ steps.install.outputs.pinentry-tty-version }}
+  gpg-fingerprint:
+    description: "GPG key fingerprint"
+    value: ${{ steps.export-gpg-details.outputs.gpg-fingerprint }}
+  gpg-email:
+    description: "GPG key email"
+    value: ${{ steps.export-gpg-details.outputs.gpg-email }}
+  gpg-name:
+    description: "GPG key name"
+    value: ${{ steps.export-gpg-details.outputs.gpg-name }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Install GPG"
+      id: install
+      shell: bash
+      run: |
+        sudo apt install gnupg pinentry-tty -y
+        echo "gpg-version=$(gpg --version | head -n 1 | awk '{print $3}')" >> "$GITHUB_OUTPUT"
+        echo "pinentry-tty-version=$(pinentry-tty --version | head -n 1 | awk '{print $3}')" >> "$GITHUB_OUTPUT"
+
+    - name: "Setup GPG"
+      id: setup-gpg
+      shell: bash
+      run: |
+        mkdir ~/.gnupg
+        chmod 700 ~/.gnupg
+        touch ~/.gnupg/gpg-agent.conf
+        chmod 600 ~/.gnupg/gpg-agent.conf
+        echo "pinentry-program /usr/bin/pinentry-tty" >> ~/.gnupg/gpg-agent.conf
+        gpg-connect-agent reloadagent /bye
+
+    - name: "Import private key with passphrase"
+      if: ${{ inputs.privateKeyPassphrase != '' }}
+      shell: bash
+      run: |
+        echo "${{ inputs.privateKeyPassphrase }}" | gpg --import --batch --yes --passphrase "${{ inputs.privateKeyPassphrase }}" --pinentry-mode loopback --allow-secret-key-import
+
+    - name: "Import private key without passphrase"
+      if: ${{ inputs.privateKeyPassphrase == '' }}
+      shell: bash
+      run: |
+        echo "${{ inputs.privateKeyPassphrase }}" | gpg --import --batch --yes
+
+    - name: "Import public key"
+      if: ${{ inputs.gpgPublicKey != '' }}
+      shell: bash
+      run: |
+        echo "${{ inputs.gpgPublicKey }}" | gpg --import --batch --yes
+
+    - name: "Listing gpg keys"
+      shell: bash
+      run: |
+        gpg --list-secret-keys --keyid-format LONG
+
+    - name: "Export GPG key details"
+      id: export-gpg-details
+      shell: bash
+      run: |
+        echo "gpg-fingerprint=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | awk -F/ '{print $2}') >> "$GITHUB_OUTPUT"
+        echo "gpg-email=$(gpg --list-secret-keys --keyid-format LONG | grep uid | sed -n -e 's/.*<\(.*\)>.*/\1/p') >> "$GITHUB_OUTPUT"
+        echo "gpg-name=$(gpg --list-secret-keys --keyid-format LONG | grep uid | awk -F'<' '{print $1}' | awk -F"d" '{print $2}' | sed 's/^ *//;s/ *$//') >> "$GITHUB_OUTPUT"
+
+    - name: "Setup Git"
+      if: ${{ inputs.gitSignCommits == 'true' }}
+      id: setup-git
+      shell: bash
+      run: |
+        git config --global user.email "${{ steps.export-gpg-details.outputs.gpg-email }}"
+        git config --global user.name "${{ steps.export-gpg-details.outputs.gpg-name }}"
+        git config --global user.signingkey "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}"
+        git config --global commit.gpgsign true
+        git config --global gpg.program gpg2
+
+    - name: "Debug"
+      if: ${{ inputs.debug == 'true' }}
+      shell: bash
+      run: |
+        cat "$GITHUB_OUTPUT"
+        ls -la ~/.gnupg
+        cat ~/.gnupg/gpg-agent.conf
+        cat ~/.gnupg/pubring.kbx
+        cat ~/.gitconfig
