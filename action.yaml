@@ -113,7 +113,6 @@ runs:
       if: ${{ inputs.debug == 'true' }}
       shell: bash
       run: |
-        cat "$GITHUB_OUTPUT"
         ls -la ~/.gnupg
         cat ~/.gnupg/gpg-agent.conf
         cat ~/.gnupg/pubring.kbx
