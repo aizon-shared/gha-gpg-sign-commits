@@ -94,9 +94,9 @@ runs:
       id: export-gpg-details
       shell: bash
       run: |
-        echo "gpg-fingerprint=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | awk -F'/' '{print $2}') >> "$GITHUB_OUTPUT"
-        echo "gpg-email=$(gpg --list-secret-keys --keyid-format LONG | grep uid | sed -n -e 's/.*<\(.*\)>.*/\1/p') >> "$GITHUB_OUTPUT"
-        echo "gpg-name=$(gpg --list-secret-keys --keyid-format LONG | grep uid | awk -F'<' '{print $1}' | awk -F"d" '{print $2}' | sed 's/^ *//;s/ *$//') >> "$GITHUB_OUTPUT"
+        echo "gpg-fingerprint=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | awk -F'/' '{print $2}') >> $GITHUB_OUTPUT"
+        echo "gpg-email=$(gpg --list-secret-keys --keyid-format LONG | grep uid | sed -n -e 's/.*<\(.*\)>.*/\1/p') >> $GITHUB_OUTPUT"
+        echo "gpg-name=$(gpg --list-secret-keys --keyid-format LONG | grep uid | awk -F'<' '{print $1}' | awk -F"d" '{print $2}' | sed 's/^ *//;s/ *$//') >> $GITHUB_OUTPUT"
 
     - name: "Setup Git"
       if: ${{ inputs.gitSignCommits == 'true' }}
