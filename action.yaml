@@ -83,7 +83,7 @@ runs:
         touch ~/.gnupg/gpg-agent.conf
         chmod 600 ~/.gnupg/gpg-agent.conf
         echo "pinentry-program /usr/bin/pinentry-tty" >> ~/.gnupg/gpg-agent.conf
-        gpg-connect-agent --allow-preset-passphrase ${{ inputs.gpgPrivateKey }} ${{ inputs.privateKeyPassphrase }} /bye
+        gpg-connect-agent PRESET_PASSPHRASE ${{ inputs.privateKeyPassphrase }} -1 ${{ inputs.gpgPrivateKey }} /bye
         gpg-connect-agent reloadagent /bye
 
     - name: "Import private key with passphrase"
