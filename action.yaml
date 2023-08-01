@@ -50,6 +50,9 @@ outputs:
   git-signingkey:
     description: "Git singing key"
     value: ${{ steps.export-git-details.outputs.git-signingkey }}
+  git-gpg-program:
+    description: "Git GPG program"
+    value: ${{ steps.export-git-details.outputs.git-gpg-program }}
 
 runs:
   using: "composite"
@@ -106,8 +109,8 @@ runs:
         git config --global user.email "${{ steps.export-gpg-details.outputs.gpg-email }}"
         git config --global user.name "${{ steps.export-gpg-details.outputs.gpg-name }}"
         git config --global user.signingkey "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}"
-        git config --global commit.gpgsign true
-        git config --global gpg.program gpg2
+        echo "git-signingkey=$(git config --global commit.gpgsign true)" >> "$GITHUB_OUTPUT"
+        echo "git-gpg-program=$(git config --global gpg.program gpg2)" >> "$GITHUB_OUTPUT"
 
     - name: "Debug"
       if: ${{ inputs.debug == 'true' }}
@@ -115,5 +118,4 @@ runs:
       run: |
         ls -la ~/.gnupg
         cat ~/.gnupg/gpg-agent.conf
-        cat ~/.gnupg/pubring.kbx
         cat ~/.gitconfig
