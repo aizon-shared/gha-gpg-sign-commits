@@ -97,6 +97,7 @@ runs:
         gpg --list-secret-keys --keyid-format LONG
 
     - name: "Export GPG key details"
+      if: ${{ inputs.gitSignCommits == 'true' }}
       id: export-gpg-details
       shell: bash
       run: |
