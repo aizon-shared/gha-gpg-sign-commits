@@ -112,7 +112,8 @@ runs:
     - name: "Setup GPG Passphrase"
       shell: bash
       run: |
-        gpg-connect-agent PRESET_PASSPHRASE "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}" -1 "${{ inputs.privateKeyPassphrase }}" /bye
+        gpg-connect-agent PRESET_PASSPHRASE "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}" -1 "${{ inputs.privateKeyPassphrase }}"
+        pgp-connect-agent reloadagent /bye
 
     - name: "Setup Git"
       if: ${{ inputs.gitSignCommits == 'true' }}
