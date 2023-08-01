@@ -1,6 +1,6 @@
-name: "GPG Setup"
+name: "GPG Sign Commits"
 author: "Aizon.ai"
-description: "Install and configure GPG tooling in Github Actions runners"
+description: "Install and configure GPG and Git to be able to sign commit using Github Actions runners"
 
 inputs:
   gpgPrivateKey:
@@ -47,6 +47,15 @@ outputs:
   gpg-name:
     description: "GPG key name"
     value: ${{ steps.export-gpg-details.outputs.gpg-name }}
+  git-email:
+    description: "Git email"
+    value: ${{ steps.export-git-details.outputs.git-email }}
+  git-name:
+    description: "Git name"
+    value: ${{ steps.export-git-details.outputs.git-name }}
+  git-signingkey:
+    description: "Git singing key"
+    value: ${{ steps.export-git-details.outputs.git-signingkey }}
 
 runs:
   using: "composite"
