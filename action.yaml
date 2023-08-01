@@ -88,7 +88,7 @@ runs:
     - name: "Import private key with passphrase"
       shell: bash
       run: |
-        echo -e "${{ inputs.gpgPrivateKey }}" | gpg --import --batch --yes --passphrase "${{ inputs.privateKeyPassphrase }}" --pinentry-mode loopback --allow-preset-passphrase
+        echo -e "${{ inputs.gpgPrivateKey }}" | gpg --import --batch --yes --passphrase "${{ inputs.privateKeyPassphrase }}" --pinentry-mode loopback
 
     - name: "Import public key"
       if: ${{ inputs.gpgPublicKey != '' }}
