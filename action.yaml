@@ -47,12 +47,6 @@ outputs:
   gpg-name:
     description: "GPG key name"
     value: ${{ steps.export-gpg-details.outputs.gpg-name }}
-  git-email:
-    description: "Git email"
-    value: ${{ steps.export-git-details.outputs.git-email }}
-  git-name:
-    description: "Git name"
-    value: ${{ steps.export-git-details.outputs.git-name }}
   git-signingkey:
     description: "Git singing key"
     value: ${{ steps.export-git-details.outputs.git-signingkey }}
