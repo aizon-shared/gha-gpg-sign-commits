@@ -49,10 +49,10 @@ outputs:
     value: ${{ steps.export-gpg-details.outputs.gpg-name }}
   git-signingkey:
     description: "Git singing key"
-    value: ${{ steps.export-git-details.outputs.git-signingkey }}
+    value: ${{ steps.setup-git.outputs.git-signingkey }}
   git-gpg-program:
     description: "Git GPG program"
-    value: ${{ steps.export-git-details.outputs.git-gpg-program }}
+    value: ${{ steps.setup-git.outputs.git-gpg-program }}
 
 runs:
   using: "composite"
