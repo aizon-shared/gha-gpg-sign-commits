@@ -109,8 +109,10 @@ runs:
         git config --global user.email "${{ steps.export-gpg-details.outputs.gpg-email }}"
         git config --global user.name "${{ steps.export-gpg-details.outputs.gpg-name }}"
         git config --global user.signingkey "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}"
-        echo "git-signingkey=$(git config --global commit.gpgsign true)" >> "$GITHUB_OUTPUT"
-        echo "git-gpg-program=$(git config --global gpg.program gpg2)" >> "$GITHUB_OUTPUT"
+        git config --global commit.gpgsign true
+        git config --global gpg.program gpg2
+        echo "git-signingkey=$(git config --get commit.gpgsign)" >> "$GITHUB_OUTPUT"
+        echo "git-gpg-program=$(git config --get gpg.program)" >> "$GITHUB_OUTPUT"
 
     - name: "Debug"
       if: ${{ inputs.debug == 'true' }}
