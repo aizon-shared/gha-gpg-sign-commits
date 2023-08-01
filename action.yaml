@@ -83,7 +83,7 @@ runs:
         touch ~/.gnupg/gpg-agent.conf
         chmod 600 ~/.gnupg/gpg-agent.conf
         echo "pinentry-program /usr/bin/pinentry-tty" >> ~/.gnupg/gpg-agent.conf
-        gpg-connect-agent reloadagent /bye
+        gpg-connect-agent reloadagent /bye --allow-preset-passphrase
 
     - name: "Import private key with passphrase"
       shell: bash
@@ -114,7 +114,7 @@ runs:
       shell: bash
       run: |
         gpg-connect-agent PRESET_PASSPHRASE ${{ steps.export-gpg-details.outputs.gpg-fingerprint }} -1 ${{ inputs.privateKeyPassphrase }} /bye
-        gpg-connect-agent reloadagent /bye
+        gpg-connect-agent reloadagent /bye --allow-preset-passphrase
 
     - name: "Setup Git"
       if: ${{ inputs.gitSignCommits == 'true' }}
