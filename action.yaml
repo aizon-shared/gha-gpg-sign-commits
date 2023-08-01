@@ -84,6 +84,7 @@ runs:
         chmod 600 ~/.gnupg/gpg-agent.conf
         echo "pinentry-program /usr/bin/pinentry-tty" >> ~/.gnupg/gpg-agent.conf
         echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
+        gpg-connect-agent reloadagent /bye
 
     - name: "Import private key with passphrase"
       shell: bash
@@ -110,11 +111,11 @@ runs:
         echo "gpg-email=$(gpg --list-secret-keys --keyid-format LONG | grep uid | sed -n -e 's/.*<\(.*\)>.*/\1/p')" >> "$GITHUB_OUTPUT"
         echo "gpg-name=$(gpg --list-secret-keys --keyid-format LONG | grep uid | sed -e 's/\[.*\]//g' | sed -e 's/(.*)//g' | awk -F'<' '{print $1}' | awk -F"d" '{print $2}' | sed 's/^ *//;s/ *$//')" >> "$GITHUB_OUTPUT"
 
-    - name: "Setup GPG Passphrase"
-      shell: bash
-      run: |
-        gpg-connect-agent PRESET_PASSPHRASE "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}" -1 "${{ inputs.privateKeyPassphrase }}"
-        gpg-connect-agent reloadagent /bye
+    # - name: "Setup GPG Passphrase"
+    #   shell: bash
+    #   run: |
+    #     gpg-connect-agent PRESET_PASSPHRASE "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}" -1 "${{ inputs.privateKeyPassphrase }}"
+    #     gpg-connect-agent reloadagent /bye
 
     - name: "Setup Git"
       if: ${{ inputs.gitSignCommits == 'true' }}
