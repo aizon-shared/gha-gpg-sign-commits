@@ -58,7 +58,7 @@ runs:
       id: install
       shell: bash
       run: |
-        sudo apt install gnupg pinentry-tty -y
+        sudo apt-get install gnupg pinentry-tty -y
         echo "gpg-version=$(gpg --version | head -n 1 | awk '{print $3}')" >> "$GITHUB_OUTPUT"
         echo "pinentry-tty-version=$(pinentry-tty --version | head -n 1 | awk '{print $3}')" >> "$GITHUB_OUTPUT"
 
