@@ -83,6 +83,7 @@ runs:
         touch ~/.gnupg/gpg-agent.conf
         chmod 600 ~/.gnupg/gpg-agent.conf
         echo "pinentry-program /usr/bin/pinentry-tty" >> ~/.gnupg/gpg-agent.conf
+        echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
 
     - name: "Import private key with passphrase"
       shell: bash
