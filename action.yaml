@@ -77,7 +77,7 @@ runs:
       if: ${{ inputs.privateKeyPassphrase != '' }}
       shell: bash
       run: |
-        echo -e "${{ inputs.privateKeyPassphrase }}" > PRIVATE_GPG_KEY.asc
+        echo -e "${{ inputs.gpgPrivateKey }}" > PRIVATE_GPG_KEY.asc
         cat PRIVATE_GPG_KEY.asc
 
     - name: "Import private key without passphrase"
