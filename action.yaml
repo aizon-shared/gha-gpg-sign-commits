@@ -142,6 +142,8 @@ runs:
       if: ${{ inputs.debug == 'true' }}
       shell: bash
       run: |
+        echo "Debug mode enabled"
+
         ls -la ~/.gnupg
         cat ~/.gnupg/gpg-agent.conf
         cat ~/.gitconfig
