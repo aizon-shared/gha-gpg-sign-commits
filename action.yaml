@@ -70,11 +70,9 @@ runs:
       id: install
       shell: bash
       run: |
-        #sudo apt-get install gnupg pinentry-tty gnupg-agent -y
         sudo apt-get install gnupg gnupg-agent -y
 
         echo "gpg-version=$(gpg --version | head -n 1 | awk '{print $3}')" >> "$GITHUB_OUTPUT"
-        #echo "pinentry-tty-version=$(pinentry-tty --version | head -n 1 | awk '{print $3}')" >> "$GITHUB_OUTPUT"
 
     - name: "Setup GPG"
       id: setup-gpg
@@ -85,7 +83,6 @@ runs:
         touch ~/.gnupg/gpg-agent.conf
         chmod 600 ~/.gnupg/gpg-agent.conf
 
-        #echo "pinentry-program $(which pinentry-tty)" >> ~/.gnupg/gpg-agent.conf
         echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
         echo "default-cache-ttl 600" >> ~/.gnupg/gpg-agent.conf
         echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
@@ -95,7 +92,6 @@ runs:
     - name: "Import private key with passphrase"
       shell: bash
       run: |
-        #echo -e "${{ inputs.gpgPrivateKey }}" | gpg --import --batch --yes --passphrase "${{ inputs.privateKeyPassphrase }}" --pinentry-mode loopback
         echo -e "${{ inputs.gpgPrivateKey }}" | gpg --import --batch --yes --passphrase "${{ inputs.privateKeyPassphrase }}"
 
     - name: "Import public key"
