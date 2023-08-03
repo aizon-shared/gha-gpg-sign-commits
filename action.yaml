@@ -12,6 +12,14 @@ inputs:
   privateKeyPassphrase:
     description: "The passphrase of the private key"
     required: false
+  gpgDefaultCacheTtl:
+    description: "The default-cache-ttl value to set in gpg-agent.conf"
+    default: 7200
+    required: false
+  gpgMaxCacheTtl:
+    description: "The max-cache-ttl value to set in gpg-agent.conf"
+    default: 7200
+    required: false
   gitSignCommits:
     description: |-
       Enable git configurations to sign commits with the imported key.
@@ -82,8 +90,8 @@ runs:
 
         touch ~/.gnupg/gpg-agent.conf
         echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
-        echo "default-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
-        echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
+        echo "default-cache-ttl ${{ inputs.gpgDefaultCacheTtl }}" >> ~/.gnupg/gpg-agent.conf
+        echo "max-cache-ttl ${{ inputs.gpgMaxCacheTtl }}" >> ~/.gnupg/gpg-agent.conf
         chmod 600 ~/.gnupg/gpg-agent.conf
 
         touch ~/.gnupg/gpg.conf
@@ -95,7 +103,7 @@ runs:
 
         gpg-connect-agent reloadagent /bye
 
-    - name: "Import private key with passphrase"
+    - name: "Import private key"
       shell: bash
       run: |
         echo -e "${{ inputs.gpgPrivateKey }}" | gpg --import --allow-secret-key --batch --yes
@@ -106,15 +114,13 @@ runs:
       run: |
         echo -e "${{ inputs.gpgPublicKey }}" | gpg --import --allow-secret-key --batch --yes
 
-    - name: "Listing gpg keys"
+    - name: "Setup GPG Passphrase"
       shell: bash
       run: |
-        gpg --list-secret-keys --keyid-format LONG
-
-    - name: "Listing gpg keyinfo"
-      shell: bash
-      run: |
-        gpg-connect-agent -q 'keyinfo --list' /bye
+        for KEYGRIP in $(gpg-connect-agent -q 'keyinfo --list' /bye | awk '/KEYINFO/ { print $3 }'); do
+          echo "Setting passphrase for keygrip: $KEYGRIP"
+          /usr/lib/gnupg2/gpg-preset-passphrase --preset --passphrase "${{ inputs.privateKeyPassphrase }}" $KEY
+        done
 
     - name: "Export GPG key details"
       id: export-gpg-details
@@ -124,14 +130,6 @@ runs:
         echo "gpg-fingerprint-long=$(gpg --list-secret-keys --keyid-format LONG | grep "^\s.*[a-fA-F0-9]$" | sed 's/\s//g')" >> "$GITHUB_OUTPUT"
         echo "gpg-email=$(gpg --list-secret-keys --keyid-format LONG | grep uid | sed -n -e 's/.*<\(.*\)>.*/\1/p')" >> "$GITHUB_OUTPUT"
         echo "gpg-name=$(gpg --list-secret-keys --keyid-format LONG | grep uid | sed -e 's/\[.*\]//g' | sed -e 's/(.*)//g' | awk -F'<' '{print $1}' | awk -F"d" '{print $2}' | sed 's/^ *//;s/ *$//')" >> "$GITHUB_OUTPUT"
-
-    - name: "Setup GPG Passphrase"
-      shell: bash
-      run: |
-        for KEY in $(gpg-connect-agent -q 'keyinfo --list' /bye | awk '/KEYINFO/ { print $3 }'); do
-          echo "Setting passphrase for $KEY"
-          /usr/lib/gnupg2/gpg-preset-passphrase --preset --passphrase "${{ inputs.privateKeyPassphrase }}" $KEY
-        done
 
     - name: "Setup Git"
       if: ${{ inputs.gitSignCommits == 'true' }}
@@ -154,16 +152,22 @@ runs:
       if: ${{ inputs.debug == 'true' }}
       shell: bash
       run: |
-        echo "Debug mode enabled"
+        echo "### Debug mode enabled ###"
 
-        echo "Listing ~/.gnupg contents"
+        echo "-> Listing ~/.gnupg contents"
         ls -la ~/.gnupg
 
-        echo "Showing ~/.gnupg/gpg.conf"
+        echo "-> Showing ~/.gnupg/gpg.conf"
         cat ~/.gnupg/gpg.conf
 
-        echo "Showing ~/.gnupg/gpg-agent.conf"
+        echo "-> Showing ~/.gnupg/gpg-agent.conf"
         cat ~/.gnupg/gpg-agent.conf
 
-        echo "Showing ~/.gitconfig"
+        echo "-> Showing ~/.gitconfig"
         cat ~/.gitconfig
+
+        echo "-> Showing keys"
+        gpg --list-secret-keys --keyid-format LONG
+
+        echo "Showing keyinfo"
+        gpg-connect-agent -q 'keyinfo --list' /bye
