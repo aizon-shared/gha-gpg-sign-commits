@@ -4,13 +4,13 @@ description: "Install and configure GPG and Git to be able to sign commit using 
 
 inputs:
   gpgPrivateKey:
-    description: "The private key to import"
+    description: "The private key in ASCII format to import"
     required: true
   gpgPublicKey:
-    description: "The public key to import"
+    description: "The public key in ASCII format to import"
     required: false
   privateKeyPassphrase:
-    description: "The passphrase of the private key"
+    description: "The Passphrase of the private key"
     required: false
   gpgDefaultCacheTtl:
     description: "The default-cache-ttl value to set in gpg-agent.conf"
@@ -31,11 +31,11 @@ inputs:
       - commit.gpgsign
       - gpg.program
 
-      Name and email will be set to the values of the imported key.
+      Name and email will be set to the values of the imported private key.
     default: true
     required: false
   debug:
-    description: "Enable debug mode"
+    description: "Enable debug mode. This shows the content of the important files."
     default: false
     required: false
 
@@ -44,7 +44,7 @@ outputs:
     description: "GPG used version"
     value: ${{ steps.install.outputs.gpg-version }}
   gpg-fingerprint:
-    description: "GPG key fingerprint shot format"
+    description: "GPG key fingerprint short format"
     value: ${{ steps.export-gpg-details.outputs.gpg-fingerprint }}
   gpg-fingerprint-long:
     description: "GPG key fingerprint long format"
@@ -56,19 +56,19 @@ outputs:
     description: "GPG key name"
     value: ${{ steps.export-gpg-details.outputs.gpg-name }}
   git-user-email:
-    description: "Git user email"
+    description: "Git user email coming from GPG key"
     value: ${{ steps.setup-git.outputs.git-user-email }}
   git-user-name:
-    description: "Git user name"
+    description: "Git user name coming from GPG key"
     value: ${{ steps.setup-git.outputs.git-user-name }}
   git-user-signingkey:
-    description: "Git user signing key"
+    description: "Git user signing key coming from GPG key"
     value: ${{ steps.setup-git.outputs.git-user-signingkey }}
   git-commit-gpgsign:
-    description: "Git commit gpgsign"
+    description: "Git commit gpgsign value"
     value: ${{ steps.setup-git.outputs.git-commit-gpgsign }}
   git-gpg-program:
-    description: "Git gpg program"
+    description: "Git gpg program value"
     value: ${{ steps.setup-git.outputs.git-gpg-program }}
 
 runs:
