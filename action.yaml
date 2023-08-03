@@ -35,12 +35,12 @@ outputs:
   gpg-version:
     description: "GPG used version"
     value: ${{ steps.install.outputs.gpg-version }}
-  pinentry-tty-version:
-    description: "pinentry-tty used version"
-    value: ${{ steps.install.outputs.pinentry-tty-version }}
   gpg-fingerprint:
-    description: "GPG key fingerprint"
+    description: "GPG key fingerprint shot format"
     value: ${{ steps.export-gpg-details.outputs.gpg-fingerprint }}
+  gpg-fingerprint-long:
+    description: "GPG key fingerprint long format"
+    value: ${{ steps.export-gpg-details.outputs.gpg-fingerprint-long }}
   gpg-email:
     description: "GPG key email"
     value: ${{ steps.export-gpg-details.outputs.gpg-email }}
@@ -70,8 +70,7 @@ runs:
       id: install
       shell: bash
       run: |
-        sudo apt-get install gnupg gnupg-agent -y
-
+        sudo apt-get install gnupg gnupg2 gnupg-agent -y
         echo "gpg-version=$(gpg --version | head -n 1 | awk '{print $3}')" >> "$GITHUB_OUTPUT"
 
     - name: "Setup GPG"
@@ -80,44 +79,59 @@ runs:
       run: |
         mkdir ~/.gnupg
         chmod 700 ~/.gnupg
+
         touch ~/.gnupg/gpg-agent.conf
+        echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
+        echo "default-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
+        echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
         chmod 600 ~/.gnupg/gpg-agent.conf
 
-        echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
-        echo "default-cache-ttl 600" >> ~/.gnupg/gpg-agent.conf
-        echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
+        touch ~/.gnupg/gpg.conf
+        echo "batch" >> ~/.gnupg/gpg.conf
+        echo "no-tty" >> ~/.gnupg/gpg.conf
+        echo "trust-model always" >> ~/.gnupg/gpg.conf
+        echo "yes" >> ~/.gnupg/gpg.conf
+        chmod 600 ~/.gnupg/gpg.conf
 
         gpg-connect-agent reloadagent /bye
 
     - name: "Import private key with passphrase"
       shell: bash
       run: |
-        echo -e "${{ inputs.gpgPrivateKey }}" | gpg --import --batch --yes --passphrase "${{ inputs.privateKeyPassphrase }}"
+        echo -e "${{ inputs.gpgPrivateKey }}" | gpg --import --allow-secret-key --batch --yes
 
     - name: "Import public key"
       if: ${{ inputs.gpgPublicKey != '' }}
       shell: bash
       run: |
-        echo -e "${{ inputs.gpgPublicKey }}" | gpg --import --batch --yes
+        echo -e "${{ inputs.gpgPublicKey }}" | gpg --import --allow-secret-key --batch --yes
 
     - name: "Listing gpg keys"
       shell: bash
       run: |
         gpg --list-secret-keys --keyid-format LONG
 
+    - name: "Listing gpg keyinfo"
+      shell: bash
+      run: |
+        gpg-connect-agent -q 'keyinfo --list' /bye
+
     - name: "Export GPG key details"
-      if: ${{ inputs.gitSignCommits == 'true' }}
       id: export-gpg-details
       shell: bash
       run: |
         echo "gpg-fingerprint=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | awk -F'/' '{print $2}')" >> "$GITHUB_OUTPUT"
+        echo "gpg-fingerprint-long=$(gpg --list-secret-keys --keyid-format LONG | grep "^\s.*[a-fA-F0-9]$" | sed 's/\s//g')" >> "$GITHUB_OUTPUT"
         echo "gpg-email=$(gpg --list-secret-keys --keyid-format LONG | grep uid | sed -n -e 's/.*<\(.*\)>.*/\1/p')" >> "$GITHUB_OUTPUT"
         echo "gpg-name=$(gpg --list-secret-keys --keyid-format LONG | grep uid | sed -e 's/\[.*\]//g' | sed -e 's/(.*)//g' | awk -F'<' '{print $1}' | awk -F"d" '{print $2}' | sed 's/^ *//;s/ *$//')" >> "$GITHUB_OUTPUT"
 
     - name: "Setup GPG Passphrase"
       shell: bash
       run: |
-        /usr/lib/gnupg2/gpg-preset-passphrase --preset "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}" <<< "${{ inputs.privateKeyPassphrase }}"
+        for KEY in $(pg-connect-agent -q 'keyinfo --list' /bye | awk '/KEYINFO/ { print $3 }'); do
+          echo "Setting passphrase for $KEY"
+          /usr/lib/gnupg2/gpg-preset-passphrase --preset --passphrase "${{ inputs.privateKeyPassphrase }}" $KEY
+        done
 
     - name: "Setup Git"
       if: ${{ inputs.gitSignCommits == 'true' }}
@@ -128,7 +142,7 @@ runs:
         git config --global user.name "${{ steps.export-gpg-details.outputs.gpg-name }}"
         git config --global user.signingkey "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}"
         git config --global commit.gpgsign true
-        git config --global gpg.program gpg2
+        git config --global gpg.program $(which gpg)
 
         echo "git-user-email=$(git config --get user.email)" >> "$GITHUB_OUTPUT"
         echo "git-user-name=$(git config --get user.name)" >> "$GITHUB_OUTPUT"
@@ -142,6 +156,14 @@ runs:
       run: |
         echo "Debug mode enabled"
 
+        echo "Listing ~/.gnupg contents"
         ls -la ~/.gnupg
+
+        echo "Showing ~/.gnupg/gpg.conf"
+        cat ~/.gnupg/gpg.conf
+
+        echo "Showing ~/.gnupg/gpg-agent.conf"
         cat ~/.gnupg/gpg-agent.conf
+
+        echo "Showing ~/.gitconfig"
         cat ~/.gitconfig
