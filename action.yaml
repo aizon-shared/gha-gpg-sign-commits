@@ -128,7 +128,7 @@ runs:
     - name: "Setup GPG Passphrase"
       shell: bash
       run: |
-        for KEY in $(pg-connect-agent -q 'keyinfo --list' /bye | awk '/KEYINFO/ { print $3 }'); do
+        for KEY in $(gpg-connect-agent -q 'keyinfo --list' /bye | awk '/KEYINFO/ { print $3 }'); do
           echo "Setting passphrase for $KEY"
           /usr/lib/gnupg2/gpg-preset-passphrase --preset --passphrase "${{ inputs.privateKeyPassphrase }}" $KEY
         done
