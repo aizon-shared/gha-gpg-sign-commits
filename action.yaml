@@ -140,7 +140,7 @@ runs:
         git config --global user.name "${{ steps.export-gpg-details.outputs.gpg-name }}"
         git config --global user.signingkey "${{ steps.export-gpg-details.outputs.gpg-fingerprint }}"
         git config --global commit.gpgsign true
-        git config --global gpg.program $(which gpg)
+        git config --global gpg.program $(which gpg2)
 
         echo "git-user-email=$(git config --get user.email)" >> "$GITHUB_OUTPUT"
         echo "git-user-name=$(git config --get user.name)" >> "$GITHUB_OUTPUT"
