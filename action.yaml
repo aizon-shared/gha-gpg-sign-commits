@@ -119,7 +119,7 @@ runs:
       run: |
         for KEYGRIP in $(gpg-connect-agent -q 'keyinfo --list' /bye | awk '/KEYINFO/ { print $3 }'); do
           echo "Setting passphrase for keygrip: $KEYGRIP"
-          /usr/lib/gnupg2/gpg-preset-passphrase --preset --passphrase "${{ inputs.privateKeyPassphrase }}" $KEY
+          /usr/lib/gnupg2/gpg-preset-passphrase --preset --passphrase "${{ inputs.privateKeyPassphrase }}" $KEYGRIP
         done
 
     - name: "Export GPG key details"
