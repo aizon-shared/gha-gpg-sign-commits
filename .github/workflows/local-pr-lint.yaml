@@ -1,0 +1,16 @@
+name: "Lint on Commit Messages and Pull Requests Title Naming Conventions"
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  pr-checks:
+    secrets: inherit
+    uses: aizon-shared/common-workflows/.github/workflows/pr-checks.yaml@v1
+    with:
+      force-requirement-approved: false
+      explicit-requirement-ticket: false
+      development-ticket-prefix: "EX-,OPE-"
+      requirement-ticket-prefix: "AER-,"

@@ -1,0 +1,36 @@
+---
+# Configuration file for MegaLinter
+# https://github.com/oxsecurity/megalinter/blob/main/docs/config-file.md
+
+APPLY_FIXES: all
+
+ENABLE:
+  - ACTION
+  - BASH
+  - YAML
+
+ENABLE_LINTERS:
+  - ACTION_ACTIONLINT
+  - BASH_EXEC
+  - BASH_SHELLCHECK
+  - YAML_PRETTIER
+
+DISABLE_LINTERS:
+  - YAML_V8R
+  - YAML_YAMLLINT
+
+# DISABLE:
+# - COPYPASTE # Uncomment to disable checks of excessive copy-pastes
+# - SPELL # Uncomment to disable checks of spelling mistakes
+
+FORMATTERS_DISABLE_ERRORS: false
+
+SHOW_ELAPSED_TIME: true
+
+FILEIO_REPORTER: false
+
+EMAIL_REPORTER: false
+
+MARKDOWN_SUMMARY_REPORTER: true
+
+FLAVOR_SUGGESTIONS: false
