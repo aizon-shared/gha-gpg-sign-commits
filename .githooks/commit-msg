@@ -1,0 +1,159 @@
+#!/bin/bash
+
+# bash -x <script> if you want to debug it
+
+# Array of valid ticket prefixes
+TICKET_PREFIXES=(EX-)
+# Array of valid commit types
+TYPES=("build" "chore" "ci" "docs" "feat" "fix" "perf" "refactor" "revert" "style" "test")
+
+function box_out()
+{
+  # Store the input into a variable for multiple usages.
+  local input="$1"
+  # Define an empty string to store the line with maximum width.
+  local max_width_line=''
+
+  # Read each line of the input to find the maximum length.
+  while IFS= read -r line; do
+    if (( ${#line} > ${#max_width_line} )); then
+      max_width_line="$line"
+    fi
+  done <<< "$input"
+
+  # Get the width of the longest line.
+  local w="${#max_width_line}"
+
+  # Set text color to yellow.
+  tput setaf 3
+
+  # Print the top border of the box.
+  echo " -${max_width_line//?/-}-"
+
+  while IFS= read -r line; do
+    # Print the line of text inside the box, with bluish text.
+    printf '| %s%*s%s |\n' "$(tput setaf 4)" "-$w" "$line" "$(tput setaf 3)"
+  done <<< "$input"
+
+  # Print the bottom border of the box.
+  echo " -${max_width_line//?/-}-"
+
+  # Reset terminal settings (like color).
+  tput sgr 0
+}
+
+function lint_semantic_commit_message {
+  COMMIT_MESSAGE=$1
+  
+  # Convert the COMMIT_MESSAGE into an array of lines ignoring commented lines and empty lines
+  declare -a LINES=()
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^# ]]; then continue; fi
+    if [[ -z "$line" ]]; then continue; fi
+    LINES+=("$line")
+  done <<< "$COMMIT_MESSAGE"
+
+  # Get the total number of lines
+  total=${#LINES[@]}
+
+  # The first line is the HEADER
+  COMMIT_HEADER="${LINES[0]}"
+
+  # The last line is the FOOTER
+  if (( total > 1 )); then
+    COMMIT_FOOTER="${LINES[total-1]}"
+  else
+    COMMIT_FOOTER=""
+  fi
+
+  # Everything else is the BODY
+  COMMIT_BODY=""
+  for (( i=1; i<total-1; i++ )); do
+    COMMIT_BODY+="${LINES[i]}"
+    if (( i < total-2 )); then COMMIT_BODY+="\n"; fi
+  done
+  COMMIT_BODY=$(echo -e "$COMMIT_BODY" | grep .)
+
+  printf "🔎 Semantic linting the following commit message:\n"
+  box_out "$COMMIT_MESSAGE"
+
+  # Merge commits should not be linted
+  if [[ "$COMMIT_HEADER" =~ ^Merge ]]; then
+    printf "✅ %s\n" "Merge commits are not linted"
+    exit 0
+  fi
+  # Header should not be empty
+  if [[ -z "$COMMIT_HEADER" ]]; then
+    printf "❌ %s\n" "Header should not be empty"
+    exit 1
+  fi
+  # Header should not start with blank spaces
+  if [[ "$COMMIT_HEADER" =~ ^[[:space:]] ]]; then
+    printf "❌ %s\n" "Header should not start with blank spaces"
+    exit 1
+  fi
+  # Header should not exceed 100 lines
+  if [[ $(wc -L <<< "$COMMIT_HEADER") -gt 100 ]]; then
+    printf "❌ %s\n" "Header should not exceed 100 characters"
+    exit 1
+  fi
+  # Header should not end with period
+  if [[ "$COMMIT_HEADER" =~ \.$ ]]; then
+    printf "❌ %s\n" "Header should not end with period (.)"
+    exit 1
+  fi
+  # Body should not start with blank spaces (if it exists)
+  if [[ "$COMMIT_BODY" && "$COMMIT_BODY" =~ ^[[:space:]] ]]; then
+    printf "❌ %s\n" "Body should not start with blank spaces"
+    exit 1
+  fi
+  # Body should not exceed 100 lines
+  if [[ $(wc -l <<< "$COMMIT_BODY") -gt 100 ]]; then
+    printf "❌ %s\n" "Body should not exceed 100 lines"
+    exit 1
+  fi
+  # Footer should not start with blank spaces (if it exists)
+  if [[ "$COMMIT_FOOTER" && "$COMMIT_FOOTER" =~ ^[[:space:]] ]]; then
+    printf "❌ %s\n" "Footer should not start with blank spaces"
+    exit 1
+  fi
+  # Footer should not exceed 100 lines
+  if [[ $(wc -L <<< "$COMMIT_FOOTER") -gt 100 ]]; then
+    printf "❌ %s\n" "Footer should not exceed 100 characters"
+    exit 1
+  fi
+  # Footer should not be empty
+  if [[ -z "$COMMIT_FOOTER" ]]; then
+    printf "❌ %s\n" "Footer should not be empty"
+    exit 1
+  fi
+  # Every ticket prefix (followed by a number) should be present in the footer
+  ticket_in_footer=false
+  for prefix in "${TICKET_PREFIXES[@]}"; do
+    if [[ "$COMMIT_FOOTER" =~ (^|[[:space:]])${prefix}[0-9]+($|[[:space:]]) ]]; then
+      ticket_in_footer=true
+    fi
+  done
+  if [[ "$ticket_in_footer" == false ]]; then
+    printf "❌ %s\n" "Missing ticket reference in the footer. Allowed ticket prefixes are: ${TICKET_PREFIXES[*]}"
+    exit 1
+  fi
+  # Type should be one of the ones defined in TYPES array
+  if [[ ! $(grep -E -o "^[a-z]+" <<< "$COMMIT_HEADER") =~ $(IFS="|"; echo "${TYPES[*]}") ]]; then
+    printf "❌ %s\n" "Invalid type. It should be one of the following: ${TYPES[*]}"
+    exit 1
+  fi
+
+  printf "✅ %s\n" "Commit message is valid"
+}
+
+# Single function can be called from command line as follows:
+# .githooks/commit-msg lint_semantic_commit_message <commit message>
+if declare -f "$1" &>/dev/null; then
+  # call arguments verbatim
+  "$@"
+else
+  # execute by default when the file is executed without arguments
+  printf "👉 Running commit-msg hook ...\n"
+  lint_semantic_commit_message "$(cat "$1")"
+fi

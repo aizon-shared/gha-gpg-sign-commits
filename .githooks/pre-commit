@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# bash -x <script> if you want to debug it
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# list of required commands in this script
+# if any of these commands are not found,
+# the script will exit with an error.
+required_commands=(
+  "yq"
+)
+
+# Check if all the required commands are available in the system
+for cmd in "${required_commands[@]}"; do
+	if ! command -v "${cmd}" >/dev/null 2>&1; then
+		echo -e "\033[91mCommand: '$cmd' not found in the system, and it is required to run this $0 script. \033[0m" >&2
+		exit 1
+	fi
+done
+
+# Functions
+function mega_linter() {
+  printf "👉 Running Mega-Linter...\n"
+  # Remove Mega-Linter old reports
+  rm -rf megalinter-reports
+  # Run Mega-Linter
+  docker run --rm -v "$(pwd)":/tmp/lint:rw oxsecurity/megalinter:v7
+}
+
+if declare -f "$1" &>/dev/null; then
+  # Call arguments verbatim
+  "$@"
+else
+  # Execute by default when the file is executed without arguments
+  printf "👉 Running pre-commit hook ...\n"
+  mega_linter
+fi
