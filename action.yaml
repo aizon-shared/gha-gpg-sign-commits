@@ -84,7 +84,7 @@ runs:
         elif [[ $(cat /etc/*-release | grep -Ei "fedora") ]]; then
           echo "Detected Fedora"
           dnf install gnupg2 --allowerasing -y
-          dnf install git -y
+          dnf install git which -y
         else
           echo "Unsupported OS"
           exit 1
