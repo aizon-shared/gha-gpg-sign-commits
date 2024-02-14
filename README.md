@@ -1,6 +1,12 @@
-# gha-sign-commit
+# GitHub Actions GPG Sign Commits
 
-Install and configure GPG and Git to be able to sign commit using Github Actions runners
+Install and configure GPG and Git to be able to sign commit using Github Actions runners.
+
+## Supported Operating Systems
+
+- Ubuntu
+- Fedora
+- Amazon Linux 2023
 
 ## Inputs
 
@@ -124,3 +130,10 @@ jobs:
 This module is released under the Apache License Version 2.0:
 
 * [http://www.apache.org/licenses/LICENSE-2.0.html](http://www.apache.org/licenses/LICENSE-2.0.html)
+
+## Activate git hooks
+
+```bash
+git config -f .gitconfig core.hooksPath .githooks
+git config --local include.path ../.gitconfig
+```

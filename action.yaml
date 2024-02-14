@@ -78,7 +78,17 @@ runs:
       id: install
       shell: bash
       run: |
-        sudo apt-get install gnupg gnupg2 gnupg-agent -y
+        if [[ $(cat /etc/*-release | grep -Ei "debian|ubuntu") ]]; then
+          echo "Detected Debian/Ubuntu"
+          sudo apt-get install gnupg gnupg2 gnupg-agent -y
+        elif [[ $(cat /etc/*-release | grep -Ei "fedora") ]]; then
+          echo "Detected Fedora"
+          dnf install gnupg2 --allowerasing -y
+          dnf install git -y
+        else
+          echo "Unsupported OS"
+          exit 1
+        fi
         echo "gpg-version=$(gpg --version | head -n 1 | awk '{print $3}')" >> "$GITHUB_OUTPUT"
 
     - name: "Setup GPG"
@@ -119,7 +129,16 @@ runs:
       run: |
         for KEYGRIP in $(gpg-connect-agent -q 'keyinfo --list' /bye | awk '/KEYINFO/ { print $3 }'); do
           echo "Setting passphrase for keygrip: $KEYGRIP"
-          /usr/lib/gnupg2/gpg-preset-passphrase --preset --passphrase "${{ inputs.privateKeyPassphrase }}" $KEYGRIP
+          if [[ $(cat /etc/*-release | grep -Ei "debian|ubuntu") ]]; then
+            echo "Detected Debian/Ubuntu"
+            /usr/lib/gnupg2/gpg-preset-passphrase --preset --passphrase "${{ inputs.privateKeyPassphrase }}" $KEYGRIP
+          elif [[ $(cat /etc/*-release | grep -Ei "fedora") ]]; then
+            echo "Detected Fedora"
+            /usr/libexec/gpg-preset-passphrase --preset --passphrase "${{ inputs.privateKeyPassphrase }}" $KEYGRIP
+          else
+            echo "Unsupported OS"
+            exit 1
+          fi
         done
 
     - name: "Export GPG key details"
