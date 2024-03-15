@@ -1,5 +1,2 @@
-* @aizon-shared/devops @aizon-shared/architecture         
-# ONLY SECURITY CAN EDIT THE CODEOWNERS FILE        
-/.github/CODEOWNERS @aizon-shared/security        
-# ONLY ARCHITECTURE CAN EDIT WORKFLOWS        
-/.github/workflows/* @aizon-shared/architecture
+/.github/CODEOWNERS @aizon-shared/security
+/.github/workflows/* @aizon-shared/security
