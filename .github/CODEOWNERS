@@ -1,2 +1,3 @@
+* @aizon-shared/devops @aizon-shared/reviewers_infra
 /.github/CODEOWNERS @aizon-shared/security
-/.github/workflows/* @aizon-shared/security
+/.github/workflows/* @aizon-shared/architecture @aizon-shared/devops @aizon-shared/reviewers_infra
