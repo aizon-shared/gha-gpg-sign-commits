@@ -80,9 +80,11 @@ runs:
       run: |
         if [[ $(cat /etc/*-release | grep -Ei "debian|ubuntu") ]]; then
           echo "Detected Debian/Ubuntu"
+          sudo apt-get update -y
           sudo apt-get install gnupg gnupg2 gnupg-agent -y
         elif [[ $(cat /etc/*-release | grep -Ei "fedora") ]]; then
           echo "Detected Fedora"
+          dnf upgrade -y
           dnf install gnupg2 --allowerasing -y
           dnf install git which -y
         else
