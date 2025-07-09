@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      - canary
-      - release/*
 
 permissions:
   contents: write
@@ -14,24 +12,7 @@ permissions:
 
 jobs:
   release-main:
-    if: github.ref == 'refs/heads/main'
     secrets: inherit
-    uses: aizon-shared/common-workflows/.github/workflows/release.yaml@v1
+    uses: aizon-shared/common-workflows/.github/workflows/release.yaml@v2
     with:
-      major-release: true
-
-  release-canary:
-    if: github.ref == 'refs/heads/canary'
-    secrets: inherit
-    uses: aizon-shared/common-workflows/.github/workflows/release.yaml@v1
-    with:
-      pre-release: canary
-      major-release: true
-
-  release-release:
-    if: startsWith(github.ref, 'refs/heads/release/')
-    secrets: inherit
-    uses: aizon-shared/common-workflows/.github/workflows/release.yaml@v1
-    with:
-      pre-release: rc
       major-release: true
