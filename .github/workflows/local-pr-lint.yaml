@@ -13,4 +13,4 @@ jobs:
       force-requirement-approved: false
       explicit-requirement-ticket: false
       development-ticket-prefix: "EXO-,EX-,OPE-,BFPL-,SEC-"
-      requirement-ticket-prefix: "AER-,"
+      requirement-ticket-prefix: "AER-"
